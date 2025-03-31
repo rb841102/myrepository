@@ -1,0 +1,57 @@
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Try 
+{   
+    #$ChangePWSEvent.message = Get-WinEvent  -FilterHashtable @{LogName='Security';Id=4740} -ErrorAction Stop | Sort-Object -Property TimeCreated -Descending | select -First 1
+ 
+    $ChangePWDEvent = Get-WinEvent -FilterHashtable @{LogName="Security";Id=4724} -MaxEvents 1
+    $eventXML = [xml]$ChangePWDEvent.ToXml()
+    $date = $ChangePWDEvent.TimeCreated
+    $eventdate = get-date $date -Format "yyyy/MM/dd HH:mm"
+    $targetuser = $eventXML.event.EventData.Data[0].'#text'
+    $Changedby = $eventXML.event.EventData.Data[4].'#text'
+    $targetuserDisplayName = (Get-ADUser -Identity $targetuser|Select-Object -ExpandProperty Name)#.replace(' ','') -split '[ /()]')[1]
+    $ChangedbyDisplayName = Get-ADUser -Identity $Changedby|Select-Object -ExpandProperty Name
+
+    $email = Get-ADUser -Identity $targetuser -Properties EmailAddress | Select-Object emailaddress -ErrorAction stop
+  if (!($email.emailaddress))
+  {
+	$email.emailaddress = "mis@everfocus.com"  
+  }
+} 
+Catch  
+{           
+    $targetuser = "Not Found"
+	$email = "mis@everfocus.com"  
+ 
+}#end catch    
+ 
+if ($targetuser -ne "Not Found") 
+{
+$username   = 'o365smtp@everfocus.com'
+$password   = 'Ever1688'
+$secstr     = ConvertTo-SecureString $password -AsPlainText -Force
+ 
+$hash = @{
+    from       = "o365smtp@everfocus.com"
+	to         = "robert_hsia@everfocus.com"
+    bcc        = "mis@everfocus.com"
+    subject =  "【重要】$targetuserDisplayName 密碼重置變更通知 !!"
+    smtpserver = "smtp-hve.office365.com"
+    port       = "587"
+	#importance = “High”
+    body = @"
+<HTML>
+<P><FONT face=微軟正黑體>Dear $targetuserDisplayName,</FONT></P>
+<P><FONT face=微軟正黑體><FONT color=#ff0000>這是來自 IT 管理員的重要訊息!!<BR></FONT>我們非常重視您的安全和隱私。</FONT></P>
+<P><FONT face=微軟正黑體>作為系統日常監控的一部分，</FONT><FONT face=微軟正黑體>我們發現您的密碼於 $eventdate 已被 $ChangedbyDisplayName 更改。<BR>如果您未要求執行此操作，請立即聯絡IT部門，謝謝~</FONT></P>
+</HTML>
+
+"@
+    BodyAsHtml = $true
+    credential = new-object -typename System.Management.Automation.PSCredential -argumentlist $username, $secstr
+    usessl     = $true
+	Encoding   = New-Object System.Text.UTF8Encoding
+}
+ 
+Send-MailMessage @hash
+}
