@@ -15,17 +15,17 @@ Catch
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 
-$username   = 'o365smtp@everfocus.com'
-$password   = 'Ever1688'
+$username   = ''
+$password   = ''
 $secstr     = ConvertTo-SecureString $password -AsPlainText -Force
-$recippients = "mis@everfocus.com"
-#$recippients = "robert_hsia@everfocus.com"
+$recippients = ""
+#$recippients = ""
 
 $hash = @{
     to         = $recippients
-    from    = "o365smtp@everfocus.com"
+    from    = ""
     subject =  "【嚴重】使用者 $AccountDisplayName AD 帳戶已被DC1鎖定 !"
-    smtpserver = "smtp-hve.office365.com"
+    smtpserver = ""
     port       = "587"
     body       = @"
 <HTML>
