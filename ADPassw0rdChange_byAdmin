@@ -15,28 +15,28 @@ Try
     $email = Get-ADUser -Identity $targetuser -Properties EmailAddress | Select-Object emailaddress -ErrorAction stop
   if (!($email.emailaddress))
   {
-	$email.emailaddress = "mis@everfocus.com"  
+	$email.emailaddress = ""  
   }
 } 
 Catch  
 {           
     $targetuser = "Not Found"
-	$email = "mis@everfocus.com"  
+	$email = ""  
  
 }#end catch    
  
 if ($targetuser -ne "Not Found") 
 {
-$username   = 'o365smtp@everfocus.com'
-$password   = 'Ever1688'
+$username   = ''
+$password   = ''
 $secstr     = ConvertTo-SecureString $password -AsPlainText -Force
  
 $hash = @{
-    from       = "o365smtp@everfocus.com"
-	to         = "robert_hsia@everfocus.com"
-    bcc        = "mis@everfocus.com"
+    from       = ""
+    to         = ""
+    bcc        = ""
     subject =  "【重要】$targetuserDisplayName 密碼重置變更通知 !!"
-    smtpserver = "smtp-hve.office365.com"
+    smtpserver = ""
     port       = "587"
 	#importance = “High”
     body = @"
